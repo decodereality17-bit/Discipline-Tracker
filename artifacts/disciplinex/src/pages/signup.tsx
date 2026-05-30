@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Zap } from "lucide-react";
+import { upsertProfile } from "@workspace/api-client-react";
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -21,9 +22,19 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const { error: signUpError } = await signUp(email, password, fullName);
+      const { data, error: signUpError } = await signUp(email, password, fullName);
       if (signUpError) throw signUpError;
-      // After signup, they might need to verify email or might auto-login. Assuming auto-login for this flow.
+
+      // Create profile record
+      const userId = data?.user?.id;
+      if (userId) {
+        try {
+          await upsertProfile(userId, { full_name: fullName, email });
+        } catch {
+          // Non-fatal: profile creation can be retried
+        }
+      }
+
       setLocation("/dashboard");
     } catch (err: any) {
       setError(err.message || "Failed to sign up");
@@ -37,7 +48,7 @@ export default function Signup() {
       <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-8 glow-purple animate-in zoom-in duration-500">
         <Zap className="w-8 h-8 text-primary" />
       </div>
-      
+
       <div className="w-full glass rounded-2xl p-8 animate-in slide-in-from-bottom-4 duration-500 fade-in">
         <h1 className="text-3xl font-bold text-center mb-2 glow-text tracking-tight">Initiate Sequence</h1>
         <p className="text-muted-foreground text-center mb-8">Begin your discipline protocol.</p>
@@ -51,8 +62,8 @@ export default function Signup() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Designation (Name)</Label>
-            <Input 
-              id="fullName" 
+            <Input
+              id="fullName"
               required
               value={fullName}
               onChange={e => setFullName(e.target.value)}
@@ -63,9 +74,9 @@ export default function Signup() {
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
+            <Input
+              id="email"
+              type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -73,13 +84,14 @@ export default function Signup() {
               data-testid="input-signup-email"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">Access Code (Password)</Label>
-            <Input 
-              id="password" 
-              type="password" 
+            <Input
+              id="password"
+              type="password"
               required
+              minLength={6}
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="bg-black/50 border-white/10 focus-visible:ring-primary"
@@ -87,8 +99,8 @@ export default function Signup() {
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-semibold glow-purple transition-all active:scale-[0.98]"
             disabled={isLoading}
             data-testid="button-signup-submit"

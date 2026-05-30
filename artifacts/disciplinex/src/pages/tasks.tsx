@@ -8,7 +8,9 @@ import {
   useCompleteTask,
   useCreateTask,
   useDeleteTask,
-  useUpdateTask
+  useUpdateTask,
+  useRecalculateDiscipline,
+  getGetUserStatsQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,7 @@ export default function Tasks() {
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
+  const recalculateDiscipline = useRecalculateDiscipline();
 
   const filteredTasks = allTasks?.filter(task => {
     if (activeTab === "today") {
@@ -64,7 +67,18 @@ export default function Tasks() {
   const handleCompleteToggle = (id: string, currentStatus: boolean) => {
     completeTaskMutation.mutate(
       { id, data: { completed: !currentStatus } },
-      { onSuccess: () => invalidateTasks() }
+      {
+        onSuccess: () => {
+          invalidateTasks();
+          if (user?.id) {
+            recalculateDiscipline.mutate({ userId: user.id }, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: getGetUserStatsQueryKey(user.id) });
+              }
+            });
+          }
+        }
+      }
     );
   };
 

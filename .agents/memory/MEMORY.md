@@ -1,0 +1,4 @@
+- [Supabase env var quirk](supabase-env-quirk.md) — Replit secrets arrive doubled (`KEY=KEY=value`); needs `cleanEnv()` strip in vite.config before passing to createClient.
+- [Vite PORT build fix](vite-port-build.md) — vite.config must not throw on missing PORT/BASE_PATH; use soft defaults so `pnpm build` works in CI.
+- [api-server zod import](api-server-zod.md) — api-server has no direct zod dep; use `@workspace/api-zod` generated schemas, never import `zod` or `zod/v4` directly.
+- [queryKey required in Orval hooks](orval-querykey.md) — Orval-generated hooks require explicit `queryKey` in the `query` options object; omitting it causes TS2741.

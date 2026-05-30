@@ -16,6 +16,8 @@ tags:
     description: User stats and discipline engine
   - name: activity
     description: Daily activity tracking
+  - name: profiles
+    description: User profile management
 paths:
   /healthz:
     get:
@@ -227,6 +229,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/DailyActivity"
 
+  /profiles/{user_id}:
+    get:
+      operationId: getProfile
+      tags: [profiles]
+      summary: Get user profile
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          description: Not found
+    put:
+      operationId: upsertProfile
+      tags: [profiles]
+      summary: Create or update user profile
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileInput"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
   /stats/{user_id}/discipline:
     post:
       operationId: recalculateDiscipline
@@ -343,6 +389,26 @@ components:
         tasks_completed:  { type: integer }
         tasks_total:      { type: integer }
         discipline_delta: { type: number }
+
+    Profile:
+      type: object
+      required: [user_id, created_at, updated_at]
+      properties:
+        user_id:     { type: string }
+        full_name:   { type: ["string", "null"] }
+        email:       { type: ["string", "null"] }
+        avatar_url:  { type: ["string", "null"] }
+        timezone:    { type: string }
+        created_at:  { type: string }
+        updated_at:  { type: string }
+
+    ProfileInput:
+      type: object
+      properties:
+        full_name:   { type: string }
+        email:       { type: string }
+        avatar_url:  { type: string }
+        timezone:    { type: string }
 
     DisciplineResult:
       type: object

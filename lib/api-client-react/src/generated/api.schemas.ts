@@ -99,6 +99,26 @@ export interface ActivityInput {
   discipline_delta?: number;
 }
 
+export interface Profile {
+  user_id: string;
+  /** @nullable */
+  full_name?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  avatar_url?: string | null;
+  timezone?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfileInput {
+  full_name?: string;
+  email?: string;
+  avatar_url?: string;
+  timezone?: string;
+}
+
 export interface DisciplineResult {
   discipline_score: number;
   level: string;

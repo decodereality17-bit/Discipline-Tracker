@@ -12,6 +12,8 @@ export * from './disciplineResult';
 export * from './fetchActivityParams';
 export * from './healthStatus';
 export * from './listTasksParams';
+export * from './profile';
+export * from './profileInput';
 export * from './task';
 export * from './taskCompleteInput';
 export * from './taskInput';

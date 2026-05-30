@@ -11,7 +11,8 @@ import {
   useCompleteTask,
   useFetchActivity,
   getFetchActivityQueryKey,
-  useCreateTask
+  useCreateTask,
+  useRecalculateDiscipline,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export default function Dashboard() {
 
   const completeTaskMutation = useCompleteTask();
   const createTaskMutation = useCreateTask();
+  const recalculateDiscipline = useRecalculateDiscipline();
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<"low" | "medium" | "high">("medium");
@@ -50,6 +52,13 @@ export default function Dashboard() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTasksQueryKey({ user_id: user?.id || "", date: today }) });
+          if (user?.id) {
+            recalculateDiscipline.mutate({ userId: user.id }, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: getGetUserStatsQueryKey(user.id) });
+              }
+            });
+          }
         }
       }
     );

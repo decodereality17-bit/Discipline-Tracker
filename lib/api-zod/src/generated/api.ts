@@ -216,6 +216,49 @@ export const RecordActivityResponse = zod.object({
 
 
 /**
+ * @summary Get user profile
+ */
+export const GetProfileParams = zod.object({
+  "user_id": zod.coerce.string()
+})
+
+export const GetProfileResponse = zod.object({
+  "user_id": zod.string(),
+  "full_name": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "avatar_url": zod.string().nullish(),
+  "timezone": zod.string().optional(),
+  "created_at": zod.string(),
+  "updated_at": zod.string()
+})
+
+
+/**
+ * @summary Create or update user profile
+ */
+export const UpsertProfileParams = zod.object({
+  "user_id": zod.coerce.string()
+})
+
+export const UpsertProfileBody = zod.object({
+  "full_name": zod.string().optional(),
+  "email": zod.string().optional(),
+  "avatar_url": zod.string().optional(),
+  "timezone": zod.string().optional()
+})
+
+export const UpsertProfileResponse = zod.object({
+  "user_id": zod.string(),
+  "full_name": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "avatar_url": zod.string().nullish(),
+  "timezone": zod.string().optional(),
+  "created_at": zod.string(),
+  "updated_at": zod.string()
+})
+
+
+/**
  * @summary Recalculate discipline score
  */
 export const RecalculateDisciplineParams = zod.object({

@@ -26,6 +26,8 @@ import type {
   FetchActivityParams,
   HealthStatus,
   ListTasksParams,
+  Profile,
+  ProfileInput,
   Task,
   TaskCompleteInput,
   TaskInput,
@@ -795,6 +797,155 @@ export const useRecordActivity = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRecordActivityMutationOptions(options));
+    }
+
+export const getGetProfileUrl = (userId: string,) => {
+
+
+
+
+  return `/api/profiles/${userId}`
+}
+
+/**
+ * @summary Get user profile
+ */
+export const getProfile = async (userId: string, options?: RequestInit): Promise<Profile> => {
+
+  return customFetch<Profile>(getGetProfileUrl(userId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProfileQueryKey = (userId: string,) => {
+    return [
+    `/api/profiles/${userId}`
+    ] as const;
+    }
+
+
+export const getGetProfileQueryOptions = <TData = Awaited<ReturnType<typeof getProfile>>, TError = ErrorType<void>>(userId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProfileQueryKey(userId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfile>>> = ({ signal }) => getProfile(userId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(userId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getProfile>>>
+export type GetProfileQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get user profile
+ */
+
+export function useGetProfile<TData = Awaited<ReturnType<typeof getProfile>>, TError = ErrorType<void>>(
+ userId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProfileQueryOptions(userId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpsertProfileUrl = (userId: string,) => {
+
+
+
+
+  return `/api/profiles/${userId}`
+}
+
+/**
+ * @summary Create or update user profile
+ */
+export const upsertProfile = async (userId: string,
+    profileInput: ProfileInput, options?: RequestInit): Promise<Profile> => {
+
+  return customFetch<Profile>(getUpsertProfileUrl(userId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      profileInput,)
+  }
+);}
+
+
+
+
+export const getUpsertProfileMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertProfile>>, TError,{userId: string;data: BodyType<ProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertProfile>>, TError,{userId: string;data: BodyType<ProfileInput>}, TContext> => {
+
+const mutationKey = ['upsertProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertProfile>>, {userId: string;data: BodyType<ProfileInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  upsertProfile(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertProfileMutationResult = NonNullable<Awaited<ReturnType<typeof upsertProfile>>>
+    export type UpsertProfileMutationBody = BodyType<ProfileInput>
+    export type UpsertProfileMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create or update user profile
+ */
+export const useUpsertProfile = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertProfile>>, TError,{userId: string;data: BodyType<ProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof upsertProfile>>,
+        TError,
+        {userId: string;data: BodyType<ProfileInput>},
+        TContext
+      > => {
+      return useMutation(getUpsertProfileMutationOptions(options));
     }
 
 export const getRecalculateDisciplineUrl = (userId: string,) => {
