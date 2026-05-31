@@ -36,12 +36,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 glass border-t border-white/5 flex items-center justify-around px-2 z-50">
-        <NavItem href="/dashboard" icon={<LayoutDashboard className="w-6 h-6" />} label="Dashboard" active={location === "/dashboard"} mobile />
-        <NavItem href="/tasks" icon={<CheckSquare className="w-6 h-6" />} label="Tasks" active={location === "/tasks"} mobile />
-        <NavItem href="/goals" icon={<Target className="w-6 h-6" />} label="Goals" active={location === "/goals"} mobile />
-        <NavItem href="/analytics" icon={<BarChart3 className="w-6 h-6" />} label="Analytics" active={location === "/analytics"} mobile />
-        <NavItem href="/profile" icon={<User className="w-6 h-6" />} label="Profile" active={location === "/profile"} mobile />
+      <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 glass border-t border-white/5 flex items-center justify-around px-1 z-50">
+        <NavItem href="/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Home" active={location === "/dashboard"} mobile />
+        <NavItem href="/tasks" icon={<CheckSquare className="w-5 h-5" />} label="Tasks" active={location === "/tasks"} mobile />
+        <NavItem href="/goals" icon={<Target className="w-5 h-5" />} label="Goals" active={location === "/goals"} mobile />
+        <NavItem href="/analytics" icon={<BarChart3 className="w-5 h-5" />} label="Stats" active={location === "/analytics"} mobile />
+        <NavItem href="/insights" icon={<Zap className="w-5 h-5" />} label="Insights" active={location === "/insights"} mobile />
+        <NavItem href="/profile" icon={<User className="w-5 h-5" />} label="Profile" active={location === "/profile"} mobile />
       </nav>
     </div>
   );
@@ -53,7 +54,7 @@ function NavItem({ href, icon, label, active, mobile = false }: { href: string, 
       <div 
         className={cn(
           "flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors duration-200",
-          mobile ? "w-16 h-14 rounded-xl" : "w-14 h-14 rounded-xl",
+          mobile ? "w-12 h-14 rounded-xl" : "w-14 h-14 rounded-xl",
           active ? "text-primary bg-primary/10 glow-purple" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
         )}
         data-testid={`nav-${label.toLowerCase()}`}
