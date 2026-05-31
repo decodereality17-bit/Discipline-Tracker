@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "6f6nrHPJSHdscDaBv05wC"
+uri = "file://vite.config.txt"
+type = "text"
+title = "vite.config.ts"
