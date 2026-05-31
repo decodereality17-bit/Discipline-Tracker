@@ -168,8 +168,8 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4 mt-4 z-10 w-full justify-around px-4">
             <div className="text-center">
-              <div className="text-2xl font-bold">{stats?.weekly_change || 0 > 0 ? "+" : ""}{stats?.weekly_change?.toFixed(1) || "0.0"}</div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-widest">7D Delta</div>
+              <div className="text-2xl font-bold">{(stats?.weekly_change ?? 0) >= 0 ? "+" : ""}{stats?.weekly_change?.toFixed(1) ?? "0.0"} pts</div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-widest">This Week</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-primary">{level}</div>
@@ -391,14 +391,14 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* 7D Delta — explained */}
+                  {/* Weekly score change */}
                   <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col justify-between">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">7D Delta</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Score This Week</span>
                     <div className={`flex items-center gap-1 text-2xl font-black ${getDeltaColor()}`}>
                       <DeltaIcon className="w-5 h-5" />
-                      {delta > 0 ? "+" : ""}{delta.toFixed(1)}
+                      {delta > 0 ? "+" : ""}{delta.toFixed(1)} pts
                     </div>
-                    <span className="text-[10px] text-muted-foreground mt-1">score change this week</span>
+                    <span className="text-[10px] text-muted-foreground mt-1">{delta > 0 ? "improving" : delta < 0 ? "declining" : "no change"}</span>
                   </div>
 
                   {/* Streak status */}
