@@ -180,29 +180,115 @@ export default function Dashboard() {
 
         {/* Stats Column */}
         <div className="md:col-span-2 grid grid-cols-2 gap-6">
-          <div className="glass rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-              <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500">
-                <Flame className="w-6 h-6" />
+          {/* Streak Metre — three criteria */}
+          <div className="col-span-2 glass rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Streak Metre</h3>
               </div>
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Current Streak</span>
+              <div className="flex flex-col items-end">
+                <span className="text-3xl font-black text-orange-400 leading-none">{stats?.current_streak || 0}</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">day streak · best {stats?.longest_streak || 0}</span>
+              </div>
             </div>
-            <div>
-              <div className="text-5xl font-black mt-4">{stats?.current_streak || 0}</div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">days active (Best: {stats?.longest_streak || 0})</div>
-            </div>
-          </div>
 
-          <div className="glass rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-              <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500">
-                <Target className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Execution</span>
-            </div>
-            <div>
-              <div className="text-5xl font-black mt-4">{stats?.weekly_completion_pct || 0}%</div>
-              <div className="text-sm text-muted-foreground font-medium mt-1">7-day hit rate</div>
+            <div className="space-y-4">
+              {/* Criterion 1: Daily Activity Streak */}
+              {(() => {
+                const streak = stats?.current_streak || 0;
+                const target = 30;
+                const pct = Math.min((streak / target) * 100, 100);
+                const status = streak >= 7 ? "on-fire" : streak >= 3 ? "building" : "start";
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-1.5 font-semibold text-white/80">
+                        <Flame className="w-3.5 h-3.5 text-orange-400" />
+                        Daily Activity
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          status === "on-fire" ? "bg-orange-500/20 text-orange-300" :
+                          status === "building" ? "bg-yellow-500/20 text-yellow-300" :
+                          "bg-white/10 text-muted-foreground"
+                        }`}>
+                          {status === "on-fire" ? "🔥 On Fire" : status === "building" ? "⚡ Building" : "Start"}
+                        </span>
+                      </span>
+                      <span className="text-muted-foreground">{streak} / {target} days</span>
+                    </div>
+                    <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-orange-500 to-yellow-400"
+                        style={{ width: `${pct}%`, boxShadow: pct > 0 ? "0 0 8px rgba(249,115,22,0.5)" : "none" }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Criterion 2: Weekly Execution Rate */}
+              {(() => {
+                const rate = stats?.weekly_completion_pct || 0;
+                const pct = Math.min(rate, 100);
+                const status = rate >= 80 ? "elite" : rate >= 50 ? "steady" : "low";
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-1.5 font-semibold text-white/80">
+                        <Target className="w-3.5 h-3.5 text-emerald-400" />
+                        Weekly Execution
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          status === "elite" ? "bg-emerald-500/20 text-emerald-300" :
+                          status === "steady" ? "bg-blue-500/20 text-blue-300" :
+                          "bg-white/10 text-muted-foreground"
+                        }`}>
+                          {status === "elite" ? "✓ Elite" : status === "steady" ? "Steady" : "Low"}
+                        </span>
+                      </span>
+                      <span className="text-muted-foreground">{rate}% hit rate</span>
+                    </div>
+                    <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-emerald-500 to-teal-400"
+                        style={{ width: `${pct}%`, boxShadow: pct > 0 ? "0 0 8px rgba(16,185,129,0.5)" : "none" }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Criterion 3: Momentum */}
+              {(() => {
+                const momentum = stats?.momentum_score || 0;
+                const pct = Math.min((momentum / 100) * 100, 100);
+                const status = momentum >= 70 ? "peak" : momentum >= 40 ? "rising" : "low";
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-1.5 font-semibold text-white/80">
+                        <Zap className="w-3.5 h-3.5 text-primary" />
+                        Momentum
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          status === "peak" ? "bg-purple-500/20 text-purple-300" :
+                          status === "rising" ? "bg-violet-500/20 text-violet-300" :
+                          "bg-white/10 text-muted-foreground"
+                        }`}>
+                          {status === "peak" ? "⚡ Peak" : status === "rising" ? "Rising" : "Low"}
+                        </span>
+                      </span>
+                      <span className="text-muted-foreground">{Math.round(momentum)} / 100</span>
+                    </div>
+                    <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-violet-600 to-primary"
+                        style={{ width: `${pct}%`, boxShadow: pct > 0 ? "0 0 8px rgba(147,51,234,0.5)" : "none" }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
