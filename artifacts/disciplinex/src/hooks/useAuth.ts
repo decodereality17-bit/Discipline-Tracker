@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import * as authFunctions from "@/lib/auth";
+import { upsertProfile } from "@workspace/api-client-react";
 import { Session, User } from "@supabase/supabase-js";
 
 export function useAuth() {
@@ -29,11 +30,20 @@ export function useAuth() {
 
     getInitialSession();
 
-    const { data: { subscription } } = authFunctions.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = authFunctions.onAuthStateChange(async (event, session) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+      }
+      if (event === "SIGNED_IN" && session?.user) {
+        const u = session.user;
+        const fullName = u.user_metadata?.full_name as string | undefined;
+        try {
+          await upsertProfile(u.id, { full_name: fullName ?? "Operative", email: u.email ?? "" });
+        } catch {
+          // non-fatal — profile may already exist
+        }
       }
     });
 
@@ -47,9 +57,7 @@ export function useAuth() {
     user,
     session,
     loading,
-    signIn: authFunctions.signIn,
-    signUp: authFunctions.signUp,
+    sendMagicLink: authFunctions.sendMagicLink,
     signOut: authFunctions.signOut,
-    resetPassword: authFunctions.resetPassword,
   };
 }
