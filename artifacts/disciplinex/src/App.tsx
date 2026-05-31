@@ -13,6 +13,7 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
 import Tasks from "@/pages/tasks";
+import Goals from "@/pages/goals";
 import Analytics from "@/pages/analytics";
 import Insights from "@/pages/insights";
 import Profile from "@/pages/profile";
@@ -40,6 +41,7 @@ function Router() {
         
         <ProtectedRoute path="/dashboard" component={Dashboard} />
         <ProtectedRoute path="/tasks" component={Tasks} />
+        <ProtectedRoute path="/goals" component={Goals} />
         <ProtectedRoute path="/analytics" component={Analytics} />
         <ProtectedRoute path="/insights" component={Insights} />
         <ProtectedRoute path="/profile" component={Profile} />

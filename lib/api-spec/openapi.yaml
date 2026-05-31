@@ -18,6 +18,8 @@ tags:
     description: Daily activity tracking
   - name: profiles
     description: User profile management
+  - name: goals
+    description: Goal tracking and progress
 paths:
   /healthz:
     get:
@@ -273,6 +275,87 @@ paths:
               schema:
                 $ref: "#/components/schemas/Profile"
 
+  /goals:
+    get:
+      operationId: listGoals
+      tags: [goals]
+      summary: List goals for a user
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Goal"
+    post:
+      operationId: createGoal
+      tags: [goals]
+      summary: Create a new goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalInput"
+      responses:
+        "201":
+          description: Created goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+
+  /goals/{id}:
+    patch:
+      operationId: updateGoal
+      tags: [goals]
+      summary: Update a goal
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalUpdate"
+      responses:
+        "200":
+          description: Updated goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+    delete:
+      operationId: deleteGoal
+      tags: [goals]
+      summary: Delete a goal
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
   /stats/{user_id}/discipline:
     post:
       operationId: recalculateDiscipline
@@ -409,6 +492,41 @@ components:
         email:       { type: string }
         avatar_url:  { type: string }
         timezone:    { type: string }
+
+    Goal:
+      type: object
+      required: [id, user_id, title, category, status, progress, created_at, updated_at]
+      properties:
+        id:           { type: string }
+        user_id:      { type: string }
+        title:        { type: string }
+        description:  { type: ["string", "null"] }
+        category:     { type: string }
+        status:       { type: string }
+        progress:     { type: integer }
+        target_date:  { type: ["string", "null"] }
+        created_at:   { type: string }
+        updated_at:   { type: string }
+
+    GoalInput:
+      type: object
+      required: [user_id, title]
+      properties:
+        user_id:      { type: string }
+        title:        { type: string, minLength: 1 }
+        description:  { type: string }
+        category:     { type: string, enum: [health, career, finance, learning, fitness, personal, general] }
+        target_date:  { type: string }
+
+    GoalUpdate:
+      type: object
+      properties:
+        title:        { type: string, minLength: 1 }
+        description:  { type: string }
+        category:     { type: string }
+        status:       { type: string, enum: [active, completed, paused] }
+        progress:     { type: integer, minimum: 0, maximum: 100 }
+        target_date:  { type: string }
 
     DisciplineResult:
       type: object

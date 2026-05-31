@@ -259,6 +259,88 @@ export const UpsertProfileResponse = zod.object({
 
 
 /**
+ * @summary List goals for a user
+ */
+export const ListGoalsQueryParams = zod.object({
+  "user_id": zod.coerce.string(),
+  "status": zod.coerce.string().nullish()
+})
+
+export const ListGoalsResponseItem = zod.object({
+  "id": zod.string(),
+  "user_id": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "status": zod.string(),
+  "progress": zod.number(),
+  "target_date": zod.string().nullish(),
+  "created_at": zod.string(),
+  "updated_at": zod.string()
+})
+export const ListGoalsResponse = zod.array(ListGoalsResponseItem)
+
+
+/**
+ * @summary Create a new goal
+ */
+
+
+
+export const CreateGoalBody = zod.object({
+  "user_id": zod.string(),
+  "title": zod.string().min(1),
+  "description": zod.string().optional(),
+  "category": zod.enum(['health', 'career', 'finance', 'learning', 'fitness', 'personal', 'general']).optional(),
+  "target_date": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a goal
+ */
+export const UpdateGoalParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+export const updateGoalBodyProgressMin = 0;
+export const updateGoalBodyProgressMax = 100;
+
+
+
+export const UpdateGoalBody = zod.object({
+  "title": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "category": zod.string().optional(),
+  "status": zod.enum(['active', 'completed', 'paused']).optional(),
+  "progress": zod.number().min(updateGoalBodyProgressMin).max(updateGoalBodyProgressMax).optional(),
+  "target_date": zod.string().optional()
+})
+
+export const UpdateGoalResponse = zod.object({
+  "id": zod.string(),
+  "user_id": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "status": zod.string(),
+  "progress": zod.number(),
+  "target_date": zod.string().nullish(),
+  "created_at": zod.string(),
+  "updated_at": zod.string()
+})
+
+
+/**
+ * @summary Delete a goal
+ */
+export const DeleteGoalParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+/**
  * @summary Recalculate discipline score
  */
 export const RecalculateDisciplineParams = zod.object({

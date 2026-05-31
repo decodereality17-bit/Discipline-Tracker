@@ -119,6 +119,66 @@ export interface ProfileInput {
   timezone?: string;
 }
 
+export interface Goal {
+  id: string;
+  user_id: string;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  category: string;
+  status: string;
+  progress: number;
+  /** @nullable */
+  target_date?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GoalInputCategory = typeof GoalInputCategory[keyof typeof GoalInputCategory];
+
+
+export const GoalInputCategory = {
+  health: 'health',
+  career: 'career',
+  finance: 'finance',
+  learning: 'learning',
+  fitness: 'fitness',
+  personal: 'personal',
+  general: 'general',
+} as const;
+
+export interface GoalInput {
+  user_id: string;
+  /** @minLength 1 */
+  title: string;
+  description?: string;
+  category?: GoalInputCategory;
+  target_date?: string;
+}
+
+export type GoalUpdateStatus = typeof GoalUpdateStatus[keyof typeof GoalUpdateStatus];
+
+
+export const GoalUpdateStatus = {
+  active: 'active',
+  completed: 'completed',
+  paused: 'paused',
+} as const;
+
+export interface GoalUpdate {
+  /** @minLength 1 */
+  title?: string;
+  description?: string;
+  category?: string;
+  status?: GoalUpdateStatus;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  progress?: number;
+  target_date?: string;
+}
+
 export interface DisciplineResult {
   discipline_score: number;
   level: string;
@@ -145,5 +205,13 @@ user_id: string;
  * @nullable
  */
 days?: number | null;
+};
+
+export type ListGoalsParams = {
+user_id: string;
+/**
+ * @nullable
+ */
+status?: string | null;
 };
 

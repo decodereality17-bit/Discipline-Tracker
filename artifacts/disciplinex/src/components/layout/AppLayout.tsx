@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, CheckSquare, BarChart3, Zap, User, Plus } from "lucide-react";
+import { LayoutDashboard, CheckSquare, BarChart3, Zap, User, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -20,6 +20,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex flex-col gap-6 flex-1">
           <NavItem href="/dashboard" icon={<LayoutDashboard className="w-6 h-6" />} label="Dashboard" active={location === "/dashboard"} />
           <NavItem href="/tasks" icon={<CheckSquare className="w-6 h-6" />} label="Tasks" active={location === "/tasks"} />
+          <NavItem href="/goals" icon={<Target className="w-6 h-6" />} label="Goals" active={location === "/goals"} />
           <NavItem href="/analytics" icon={<BarChart3 className="w-6 h-6" />} label="Analytics" active={location === "/analytics"} />
           <NavItem href="/insights" icon={<Zap className="w-6 h-6" />} label="Insights" active={location === "/insights"} />
         </nav>
@@ -38,8 +39,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 glass border-t border-white/5 flex items-center justify-around px-2 z-50">
         <NavItem href="/dashboard" icon={<LayoutDashboard className="w-6 h-6" />} label="Dashboard" active={location === "/dashboard"} mobile />
         <NavItem href="/tasks" icon={<CheckSquare className="w-6 h-6" />} label="Tasks" active={location === "/tasks"} mobile />
+        <NavItem href="/goals" icon={<Target className="w-6 h-6" />} label="Goals" active={location === "/goals"} mobile />
         <NavItem href="/analytics" icon={<BarChart3 className="w-6 h-6" />} label="Analytics" active={location === "/analytics"} mobile />
-        <NavItem href="/insights" icon={<Zap className="w-6 h-6" />} label="Insights" active={location === "/insights"} mobile />
         <NavItem href="/profile" icon={<User className="w-6 h-6" />} label="Profile" active={location === "/profile"} mobile />
       </nav>
     </div>
