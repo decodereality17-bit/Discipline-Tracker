@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
-import { Flame, CheckCircle, Target, Plus, BarChart3, Zap } from "lucide-react";
+import { format, subDays, eachDayOfInterval } from "date-fns";
+import { Flame, CheckCircle, Target, Plus, BarChart3, Zap, TrendingUp, TrendingDown, Minus, Brain } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, Cell, YAxis } from "recharts";
 import { 
   useListTasks, 
@@ -337,6 +337,88 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Today's Analysis */}
+          {(() => {
+            const completedToday = tasks?.filter(t => t.completed).length || 0;
+            const totalToday = tasks?.length || 0;
+            const completionPct = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+            const delta = stats?.weekly_change || 0;
+            const streak = stats?.current_streak || 0;
+            const score = stats?.discipline_score || 0;
+            const momentum = stats?.momentum_score || 0;
+
+            const getDeltaColor = () => delta > 0 ? "text-emerald-400" : delta < 0 ? "text-red-400" : "text-muted-foreground";
+            const DeltaIcon = delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
+
+            const getAnalysis = () => {
+              if (totalToday === 0) return { grade: "–", label: "No tasks set", tip: "Add at least one objective for today to start building your discipline score.", color: "text-muted-foreground", bg: "bg-white/5" };
+              if (completionPct === 100) return { grade: "S", label: "Perfect execution", tip: "All objectives complete. Discipline score will compound upward. Maintain this to push your streak.", color: "text-emerald-400", bg: "bg-emerald-500/10" };
+              if (completionPct >= 75) return { grade: "A", label: "Strong day", tip: `${totalToday - completedToday} task${totalToday - completedToday > 1 ? "s" : ""} remaining. Close the gap before midnight to protect your streak.`, color: "text-primary", bg: "bg-primary/10" };
+              if (completionPct >= 50) return { grade: "B", label: "Halfway there", tip: "You're at 50%+. Push through the remaining tasks — half-days erode momentum over time.", color: "text-yellow-400", bg: "bg-yellow-500/10" };
+              if (completionPct > 0) return { grade: "C", label: "Slow start", tip: "Low execution today. Even completing one more task will prevent a streak reset.", color: "text-orange-400", bg: "bg-orange-500/10" };
+              return { grade: "F", label: "Not started", tip: "Zero tasks completed. Complete at least one objective now to keep your streak alive.", color: "text-red-400", bg: "bg-red-500/10" };
+            };
+
+            const analysis = getAnalysis();
+
+            return (
+              <div className="col-span-2 glass rounded-3xl p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Today's Analysis</h3>
+                  <span className="text-xs text-muted-foreground ml-auto">{format(new Date(), "EEE, MMM d")}</span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                  {/* Daily Grade */}
+                  <div className={`rounded-2xl p-4 flex flex-col items-center justify-center text-center ${analysis.bg} border border-white/5`}>
+                    <span className={`text-4xl font-black ${analysis.color}`}>{analysis.grade}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">{analysis.label}</span>
+                  </div>
+
+                  {/* Tasks today */}
+                  <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col justify-between">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Tasks Today</span>
+                    <div>
+                      <span className="text-2xl font-black">{completedToday}</span>
+                      <span className="text-muted-foreground text-sm"> / {totalToday}</span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mt-2">
+                      <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${completionPct}%` }} />
+                    </div>
+                  </div>
+
+                  {/* 7D Delta — explained */}
+                  <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col justify-between">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">7D Delta</span>
+                    <div className={`flex items-center gap-1 text-2xl font-black ${getDeltaColor()}`}>
+                      <DeltaIcon className="w-5 h-5" />
+                      {delta > 0 ? "+" : ""}{delta.toFixed(1)}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1">score change this week</span>
+                  </div>
+
+                  {/* Streak status */}
+                  <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col justify-between">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Streak Risk</span>
+                    <div className={`text-2xl font-black ${completedToday > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {completedToday > 0 ? "Safe" : streak > 0 ? "At Risk" : "None"}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1">{streak} day streak</span>
+                  </div>
+                </div>
+
+                {/* Tip */}
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                  <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm text-white/80 leading-relaxed">{analysis.tip}</p>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="col-span-2 glass rounded-3xl p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
