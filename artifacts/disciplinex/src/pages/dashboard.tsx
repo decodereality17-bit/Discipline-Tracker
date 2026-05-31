@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { format, subDays, eachDayOfInterval } from "date-fns";
+import { format, subDays, eachDayOfInterval, startOfMonth } from "date-fns";
 import { Flame, CheckCircle, Target, Plus, BarChart3, Zap, TrendingUp, TrendingDown, Minus, Brain } from "lucide-react";
-import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, Cell, YAxis } from "recharts";
+import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, Cell, YAxis, AreaChart, Area, CartesianGrid } from "recharts";
 import { 
   useListTasks, 
   getListTasksQueryKey, 
@@ -337,6 +337,82 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Discipline Score This Month */}
+          {(() => {
+            const todayDate = new Date();
+            const monthStart = startOfMonth(todayDate);
+            const daysThisMonth = eachDayOfInterval({ start: monthStart, end: todayDate });
+
+            // Reconstruct daily running score from deltas
+            const monthDeltas = daysThisMonth.map(d => {
+              const ds = format(d, "yyyy-MM-dd");
+              const act = activities?.find(a => a.date === ds);
+              return { date: ds, delta: act?.discipline_delta ?? 0 };
+            });
+            const totalMonthDelta = monthDeltas.reduce((s, d) => s + d.delta, 0);
+            const startScore = Math.max(0, (stats?.discipline_score ?? 0) - totalMonthDelta);
+
+            let running = startScore;
+            const monthChartData = monthDeltas.map(d => {
+              running = Math.max(0, Math.min(100, running + d.delta));
+              return { day: format(new Date(d.date + "T12:00:00"), "d"), score: parseFloat(running.toFixed(1)) };
+            });
+
+            const minScore = Math.max(0, Math.min(...monthChartData.map(d => d.score)) - 5);
+            const maxScore = Math.min(100, Math.max(...monthChartData.map(d => d.score)) + 5);
+            const currentScore = stats?.discipline_score ?? 0;
+            const monthGain = parseFloat(totalMonthDelta.toFixed(1));
+
+            return (
+              <div className="col-span-2 glass rounded-3xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Discipline Score — {format(todayDate, "MMMM")}</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-right">
+                    <div>
+                      <div className="text-2xl font-black glow-text">{Math.round(currentScore)}</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-widest">Current</div>
+                    </div>
+                    <div>
+                      <div className={`text-2xl font-black ${monthGain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {monthGain >= 0 ? "+" : ""}{monthGain}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-widest">This month</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthChartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="day" stroke="rgba(255,255,255,0.25)" fontSize={11} tickLine={false} axisLine={false} interval={3} />
+                      <YAxis stroke="rgba(255,255,255,0.25)" fontSize={11} tickLine={false} axisLine={false} domain={[minScore, maxScore]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "rgba(0,0,0,0.85)", borderColor: "rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: 12 }}
+                        formatter={(v: number) => [`${v}`, "Score"]}
+                        labelFormatter={(l) => `Day ${l}`}
+                      />
+                      <Area type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#scoreGradient)" dot={false} activeDot={{ r: 4, fill: "hsl(var(--primary))" }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Today's Analysis */}
           {(() => {
