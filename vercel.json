@@ -1,0 +1,1 @@
+{"buildCommand":"pnpm --filter @workspace/disciplinex run build","outputDirectory":"artifacts/disciplinex/dist","framework":null,"rewrites":[{"source":"/(.*)","destination":"/index.html"}]}
