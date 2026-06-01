@@ -49,12 +49,14 @@ export default defineConfig({
     },
     dedupe: ["react", "react-dom"],
   },
-  root: path.resolve(import.meta.dirname),
-  build: {
+root: path.resolve(import.meta.dirname),
+
+build: {
   outDir: "dist",
   emptyOutDir: true,
 },
-    emptyOutDir: true,
+
+server: {
   },
   server: {
     port,
