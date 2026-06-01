@@ -61,5 +61,6 @@ server: {
   allowedHosts: true,
   fs: {
     strict: true,
-  } ,
-  
+  },
+},
+});
