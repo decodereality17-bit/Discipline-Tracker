@@ -1,8 +1,14 @@
+
+  
+
+
+
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
@@ -19,12 +25,13 @@ import Insights from "@/pages/insights";
 import Profile from "@/pages/profile";
 
 const queryClient = new QueryClient();
+const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function RootRoute() {
   const { user, loading } = useAuth();
-  
+
   if (loading) return null;
-  
+
   if (user) {
     return <Redirect to="/dashboard" />;
   }
@@ -38,14 +45,14 @@ function Router() {
         <Route path="/" component={RootRoute} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
-        
+
         <ProtectedRoute path="/dashboard" component={Dashboard} />
         <ProtectedRoute path="/tasks" component={Tasks} />
         <ProtectedRoute path="/goals" component={Goals} />
         <ProtectedRoute path="/analytics" component={Analytics} />
         <ProtectedRoute path="/insights" component={Insights} />
         <ProtectedRoute path="/profile" component={Profile} />
-        
+
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
@@ -54,14 +61,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ClerkProvider publishableKey={clerkKey}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
 
