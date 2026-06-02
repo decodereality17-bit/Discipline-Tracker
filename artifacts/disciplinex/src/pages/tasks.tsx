@@ -65,19 +65,18 @@ export default function Tasks() {
       return;
     }
 
-    console.log("Creating task...");
-
     createTaskMutation.mutate(
       {
-        title: title.trim(),
-        description,
-        priority,
-        due_date: dueDate,
-        user_id: user.id,
+        data: {
+          title: title.trim(),
+          description,
+          priority,
+          due_date: dueDate,
+          user_id: user.id,
+        },
       },
       {
         onSuccess: () => {
-          console.log("Task created");
           setIsCreateOpen(false);
           setTitle("");
           setDescription("");
@@ -92,13 +91,14 @@ export default function Tasks() {
     );
   };
 
-  // ================= COMPLETE =================
+  // ================= COMPLETE TASK =================
   const handleComplete = (task: any) => {
     completeTaskMutation.mutate(
       { id: task.id, data: { completed: !task.completed } },
       {
         onSuccess: () => {
           invalidate();
+
           recalc.mutate(
             { userId: user?.id || "" },
             {
@@ -114,17 +114,15 @@ export default function Tasks() {
     );
   };
 
-  // ================= DELETE =================
+  // ================= DELETE TASK =================
   const handleDelete = (id: string) => {
     deleteTaskMutation.mutate(
       { id },
-      {
-        onSuccess: invalidate,
-      }
+      { onSuccess: invalidate }
     );
   };
 
-  // ================= EDIT =================
+  // ================= EDIT TASK =================
   const openEdit = (task: any) => {
     setEditingTask(task);
     setTitle(task.title);
@@ -169,8 +167,10 @@ export default function Tasks() {
     })
     .sort((a: any, b: any) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
 
+  // ================= UI =================
   return (
     <div className="space-y-6">
+
       {/* HEADER */}
       <div className="flex justify-between">
         <h1 className="text-xl font-bold">Tasks</h1>
@@ -189,8 +189,17 @@ export default function Tasks() {
             </DialogHeader>
 
             <form onSubmit={handleCreateSubmit} className="space-y-3">
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+              />
+
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description"
+              />
 
               <Button type="submit">Create</Button>
             </form>
@@ -207,7 +216,7 @@ export default function Tasks() {
         </TabsList>
       </Tabs>
 
-      {/* TASK LIST */}
+      {/* LIST */}
       {isLoading ? (
         <p>Loading...</p>
       ) : (
@@ -245,11 +254,11 @@ export default function Tasks() {
           <form onSubmit={handleEditSubmit} className="space-y-3">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-
             <Button type="submit">Save</Button>
           </form>
         </DialogContent>
       </Dialog>
+
     </div>
   );
-    }
+            }
