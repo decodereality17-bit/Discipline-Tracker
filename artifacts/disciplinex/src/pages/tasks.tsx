@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
-import { CheckCircle, Plus, Trash2, Edit2, Calendar } from "lucide-react";
+import { CheckCircle, Plus, Trash2, Edit2 } from "lucide-react";
 
 import {
   useListTasks,
@@ -16,16 +16,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Tasks() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const [activeTab, setActiveTab] = useState("all");
@@ -43,76 +42,89 @@ export default function Tasks() {
     { query: { enabled: !!user?.id, queryKey: getListTasksQueryKey({ user_id: user?.id || "" }) } }
   );
 
-  const completeTaskMutation = useCompleteTask();
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
-  const recalculateDiscipline = useRecalculateDiscipline();
+  const completeTaskMutation = useCompleteTask();
+  const recalc = useRecalculateDiscipline();
 
-  const safeTasks = Array.isArray(allTasks)
-    ? allTasks
-    : Array.isArray((allTasks as any)?.data)
-    ? (allTasks as any).data
-    : [];
+  const tasks = Array.isArray(allTasks) ? allTasks : (allTasks as any)?.data || [];
 
-  const filteredTasks = safeTasks
-    .filter((task: any) => {
-      if (activeTab === "today") return task.due_date === todayStr && !task.completed;
-      if (activeTab === "completed") return task.completed;
-      return true;
-    })
-    .sort((a: any, b: any) => {
-      if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      if (a.due_date !== b.due_date)
-        return (a.due_date || "") > (b.due_date || "") ? 1 : -1;
-
-      const pWeight: any = { high: 0, medium: 1, low: 2 };
-      return pWeight[a.priority || "medium"] - pWeight[b.priority || "medium"];
-    });
-
-  const invalidateTasks = () => {
+  const invalidate = () => {
     queryClient.invalidateQueries({
       queryKey: getListTasksQueryKey({ user_id: user?.id || "" }),
     });
   };
 
-  const handleCompleteToggle = (id: string, current: boolean) => {
-    completeTaskMutation.mutate(
-      { id, data: { completed: !current } },
+  // ================= CREATE TASK =================
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user?.id || !title.trim()) {
+      console.error("Missing user or title");
+      return;
+    }
+
+    console.log("Creating task...");
+
+    createTaskMutation.mutate(
+      {
+        title: title.trim(),
+        description,
+        priority,
+        due_date: dueDate,
+        user_id: user.id,
+      },
       {
         onSuccess: () => {
-          invalidateTasks();
-
-          if (user?.id) {
-            recalculateDiscipline.mutate(
-              { userId: user.id },
-              {
-                onSuccess: () => {
-                  queryClient.invalidateQueries({
-                    queryKey: getGetUserStatsQueryKey(user.id),
-                  });
-                },
-              }
-            );
-          }
+          console.log("Task created");
+          setIsCreateOpen(false);
+          setTitle("");
+          setDescription("");
+          setPriority("medium");
+          setDueDate(todayStr);
+          invalidate();
+        },
+        onError: (err) => {
+          console.error("CREATE TASK ERROR:", err);
         },
       }
     );
   };
 
+  // ================= COMPLETE =================
+  const handleComplete = (task: any) => {
+    completeTaskMutation.mutate(
+      { id: task.id, data: { completed: !task.completed } },
+      {
+        onSuccess: () => {
+          invalidate();
+          recalc.mutate(
+            { userId: user?.id || "" },
+            {
+              onSuccess: () => {
+                queryClient.invalidateQueries({
+                  queryKey: getGetUserStatsQueryKey(user?.id || ""),
+                });
+              },
+            }
+          );
+        },
+      }
+    );
+  };
+
+  // ================= DELETE =================
   const handleDelete = (id: string) => {
-    if (confirm("Delete this task?")) {
-      deleteTaskMutation.mutate({ id }, { onSuccess: invalidateTasks });
-    }
+    deleteTaskMutation.mutate(
+      { id },
+      {
+        onSuccess: invalidate,
+      }
+    );
   };
 
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setPriority("medium");
-    setDueDate(todayStr);
-  };
-
+  // ================= EDIT =================
   const openEdit = (task: any) => {
     setEditingTask(task);
     setTitle(task.title);
@@ -122,54 +134,52 @@ export default function Tasks() {
     setIsEditOpen(true);
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !title.trim()) return;
-
-    createTaskMutation.mutate(
-      {
-        data: { title, description, priority, due_date: dueDate, user_id: user.id },
-      },
-      {
-        onSuccess: () => {
-          setIsCreateOpen(false);
-          resetForm();
-          invalidateTasks();
-        },
-      }
-    );
-  };
-
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!editingTask) return;
 
     updateTaskMutation.mutate(
       {
         id: editingTask.id,
-        data: { title, description, priority, due_date: dueDate },
+        data: {
+          title,
+          description,
+          priority,
+          due_date: dueDate,
+        },
       },
       {
         onSuccess: () => {
           setIsEditOpen(false);
           setEditingTask(null);
-          resetForm();
-          invalidateTasks();
+          invalidate();
         },
+        onError: (err) => console.error("UPDATE ERROR:", err),
       }
     );
   };
 
+  // ================= FILTER =================
+  const filtered = tasks
+    .filter((t: any) => {
+      if (activeTab === "today") return t.due_date === todayStr && !t.completed;
+      if (activeTab === "completed") return t.completed;
+      return true;
+    })
+    .sort((a: any, b: any) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
+
   return (
-    <div className="space-y-8 pb-12">
-      <header className="flex justify-between">
-        <h1 className="text-3xl font-bold text-white">Task Registry</h1>
+    <div className="space-y-6">
+      {/* HEADER */}
+      <div className="flex justify-between">
+        <h1 className="text-xl font-bold">Tasks</h1>
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              New Objective
+              Create Task
             </Button>
           </DialogTrigger>
 
@@ -181,50 +191,51 @@ export default function Tasks() {
             <form onSubmit={handleCreateSubmit} className="space-y-3">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+
               <Button type="submit">Create</Button>
             </form>
           </DialogContent>
         </Dialog>
-      </header>
+      </div>
 
+      {/* TABS */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
         </TabsList>
-
-        <div className="space-y-3 mt-4">
-          {isLoading ? (
-            <p>Loading...</p>
-          ) : filteredTasks.length ? (
-            filteredTasks.map((task: any) => (
-              <div key={task.id} className="p-4 border rounded-lg flex justify-between">
-                <div>
-                  <h3 className="font-bold">{task.title}</h3>
-                  <p className="text-sm">{task.description}</p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button onClick={() => handleCompleteToggle(task.id, task.completed)}>
-                    <CheckCircle />
-                  </button>
-                  <button onClick={() => openEdit(task)}>
-                    <Edit2 />
-                  </button>
-                  <button onClick={() => handleDelete(task.id)}>
-                    <Trash2 />
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No tasks found</p>
-          )}
-        </div>
       </Tabs>
 
-      {/* EDIT DIALOG */}
+      {/* TASK LIST */}
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        filtered.map((task: any) => (
+          <div key={task.id} className="border p-3 rounded flex justify-between">
+            <div>
+              <h3>{task.title}</h3>
+              <p className="text-sm">{task.description}</p>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => handleComplete(task)}>
+                <CheckCircle />
+              </button>
+
+              <button onClick={() => openEdit(task)}>
+                <Edit2 />
+              </button>
+
+              <button onClick={() => handleDelete(task.id)}>
+                <Trash2 />
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+
+      {/* EDIT */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -235,12 +246,10 @@ export default function Tasks() {
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
 
-            <Button type="submit" disabled={updateTaskMutation.isPending}>
-              Save Modifications
-            </Button>
+            <Button type="submit">Save</Button>
           </form>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+    }
