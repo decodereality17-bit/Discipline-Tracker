@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import * as authFunctions from "@/lib/auth";
 import { upsertProfile } from "@workspace/api-client-react";
 import { Session, User } from "@supabase/supabase-js";
@@ -14,7 +13,10 @@ export function useAuth() {
 
     async function getInitialSession() {
       try {
-        const { data: { session } } = await authFunctions.getSession();
+        const {
+          data: { session },
+        } = await authFunctions.getSession();
+
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
@@ -30,19 +32,27 @@ export function useAuth() {
 
     getInitialSession();
 
-    const { data: { subscription } } = authFunctions.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = authFunctions.onAuthStateChange(async (event, session) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
+
       if (event === "SIGNED_IN" && session?.user) {
         const u = session.user;
-        const fullName = u.user_metadata?.full_name as string | undefined;
+        const fullName =
+          (u.user_metadata?.full_name as string | undefined) ?? "Operative";
+
         try {
-          await upsertProfile(u.id, { full_name: fullName ?? "Operative", email: u.email ?? "" });
-        } catch {
-          // non-fatal — profile may already exist
+          await upsertProfile(u.id, {
+            full_name: fullName,
+            email: u.email ?? "",
+          });
+        } catch (err) {
+          console.error("Profile sync failed:", err);
         }
       }
     });
@@ -57,7 +67,6 @@ export function useAuth() {
     user,
     session,
     loading,
-    sendMagicLink: authFunctions.sendMagicLink,
     signOut: authFunctions.signOut,
   };
 }
