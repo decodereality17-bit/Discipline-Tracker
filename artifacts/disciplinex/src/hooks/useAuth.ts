@@ -20,6 +20,8 @@ export function useAuth() {
           setSession(session);
           setUser(session?.user ?? null);
         }
+      } catch (error) {
+        console.error("Error getting session:", error);
       } finally {
         if (mounted) {
           setLoading(false);
