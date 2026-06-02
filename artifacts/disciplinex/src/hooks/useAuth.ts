@@ -64,9 +64,8 @@ export function useAuth() {
   }, []);
 
   return {
-    user,
-    session,
-    loading,
-    signOut: authFunctions.signOut,
-  };
-}
+  user,
+  session,
+  loading,
+  signOut: authFunctions.signOut,
+};
