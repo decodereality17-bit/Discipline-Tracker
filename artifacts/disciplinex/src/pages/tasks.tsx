@@ -76,23 +76,33 @@ const filteredTasks = safeTasks
     }
 
     const pWeight = {
-      high: 0,
-      const filteredTasks = allTasks?.filter(task => {
-  if (activeTab === "today") {
-    return task.due_date === todayStr && !task.completed;
-  }
+  high: 0,
+  medium: 1,
+  low: 2,
+};
+
+return (
+  pWeight[(a.priority || "medium") as keyof typeof pWeight] -
+  pWeight[(b.priority || "medium") as keyof typeof pWeight]
+);
   if (activeTab === "completed") {
     return task.completed;
   }
   return true;
-}).sort((a, b) => {
-  if (a.completed !== b.completed)
+}).sort((a: any, b: any) => {
+  if (a.completed !== b.completed) {
     return a.completed ? 1 : -1;
+  }
 
-  if (a.due_date !== b.due_date)
+  if (a.due_date !== b.due_date) {
     return (a.due_date || "") > (b.due_date || "") ? 1 : -1;
+  }
 
-  const pWeight = { high: 0, medium: 1, low: 2 };
+  const pWeight = {
+    high: 0,
+    medium: 1,
+    low: 2,
+  };
 
   return (
     pWeight[(a.priority || "medium") as keyof typeof pWeight] -
