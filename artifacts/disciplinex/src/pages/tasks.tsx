@@ -7,12 +7,13 @@ import {
   useListTasks,
   getListTasksQueryKey,
   useCompleteTask,
-  useCreateTask,
   useDeleteTask,
   useUpdateTask,
   useRecalculateDiscipline,
   getGetUserStatsQueryKey,
 } from "@workspace/api-client-react";
+
+import { createTask } from "@/lib/api/tasks";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,6 @@ export default function Tasks() {
     { query: { enabled: !!user?.id, queryKey: getListTasksQueryKey({ user_id: user?.id || "" }) } }
   );
 
-  const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
   const completeTaskMutation = useCompleteTask();
@@ -56,8 +56,8 @@ export default function Tasks() {
     });
   };
 
-  // ================= CREATE TASK =================
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  // ================= CREATE TASK (FIXED) =================
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!user?.id || !title.trim()) {
@@ -65,30 +65,29 @@ export default function Tasks() {
       return;
     }
 
-    createTaskMutation.mutate(
-      {
-        data: {
-          title: title.trim(),
-          description,
-          priority,
-          due_date: dueDate,
-          user_id: user.id,
-        },
-      },
-      {
-        onSuccess: () => {
-          setIsCreateOpen(false);
-          setTitle("");
-          setDescription("");
-          setPriority("medium");
-          setDueDate(todayStr);
-          invalidate();
-        },
-        onError: (err) => {
-          console.error("CREATE TASK ERROR:", err);
-        },
-      }
-    );
+    try {
+      console.log("CREATING TASK...");
+
+      await createTask({
+        title: title.trim(),
+        description,
+        priority,
+        due_date: dueDate,
+        user_id: user.id,
+      });
+
+      console.log("TASK CREATED SUCCESSFULLY");
+
+      setIsCreateOpen(false);
+      setTitle("");
+      setDescription("");
+      setPriority("medium");
+      setDueDate(todayStr);
+
+      invalidate();
+    } catch (err) {
+      console.error("CREATE TASK FAILED:", err);
+    }
   };
 
   // ================= COMPLETE TASK =================
@@ -167,7 +166,6 @@ export default function Tasks() {
     })
     .sort((a: any, b: any) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
 
-  // ================= UI =================
   return (
     <div className="space-y-6">
 
@@ -216,7 +214,7 @@ export default function Tasks() {
         </TabsList>
       </Tabs>
 
-      {/* LIST */}
+      {/* TASK LIST */}
       {isLoading ? (
         <p>Loading...</p>
       ) : (
@@ -261,4 +259,4 @@ export default function Tasks() {
 
     </div>
   );
-            }
+}
