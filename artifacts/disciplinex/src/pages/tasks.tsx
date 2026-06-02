@@ -70,45 +70,43 @@ const filteredTasks = safeTasks
     if (a.completed !== b.completed) {
       return a.completed ? 1 : -1;
     }
+const filteredTasks = safeTasks
+  .filter((task: any) => {
+    if (activeTab === "today") {
+      return task.due_date === todayStr && !task.completed;
+    }
+
+    if (activeTab === "completed") {
+      return task.completed;
+    }
+
+    return true;
+  })
+  .sort((a: any, b: any) => {
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
 
     if (a.due_date !== b.due_date) {
       return (a.due_date || "") > (b.due_date || "") ? 1 : -1;
     }
 
     const pWeight = {
-  high: 0,
-  medium: 1,
-  low: 2,
-};
+      high: 0,
+      medium: 1,
+      low: 2,
+    };
 
-return (
-  pWeight[(a.priority || "medium") as keyof typeof pWeight] -
-  pWeight[(b.priority || "medium") as keyof typeof pWeight]
-);
-  if (activeTab === "completed") {
-    return task.completed;
-  }
-  return true;
-}).sort((a: any, b: any) => {
-  if (a.completed !== b.completed) {
-    return a.completed ? 1 : -1;
-  }
+    return (
+      pWeight[(a.priority || "medium") as keyof typeof pWeight] -
+      pWeight[(b.priority || "medium") as keyof typeof pWeight]
+    );
+  });
+    if (a.due_date !== b.due_date) {
+      return (a.due_date || "") > (b.due_date || "") ? 1 : -1;
+    }
 
-  if (a.due_date !== b.due_date) {
-    return (a.due_date || "") > (b.due_date || "") ? 1 : -1;
-  }
-
-  const pWeight = {
-    high: 0,
-    medium: 1,
-    low: 2,
-  };
-
-  return (
-    pWeight[(a.priority || "medium") as keyof typeof pWeight] -
-    pWeight[(b.priority || "medium") as keyof typeof pWeight]
-  );
-});
+    
 
   const handleCompleteToggle = (id: string, currentStatus: boolean) => {
     completeTaskMutation.mutate(
