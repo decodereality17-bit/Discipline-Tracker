@@ -1,7 +1,3 @@
-
-  
-
-
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 
-// Pages
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
@@ -29,8 +24,9 @@ function RootRoute() {
 
   if (loading) return null;
 
-  if (user) return <Redirect to="/dashboard" />;
-
+  if (user) {
+    return <Redirect to="/dashboard" />;
+  }
   return <Redirect to="/login" />;
 }
 
@@ -41,21 +37,19 @@ function Router() {
         <Route path="/" component={RootRoute} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
-
         <ProtectedRoute path="/dashboard" component={Dashboard} />
         <ProtectedRoute path="/tasks" component={Tasks} />
         <ProtectedRoute path="/goals" component={Goals} />
         <ProtectedRoute path="/analytics" component={Analytics} />
         <ProtectedRoute path="/insights" component={Insights} />
         <ProtectedRoute path="/profile" component={Profile} />
-
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -67,3 +61,5 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+export default App;
